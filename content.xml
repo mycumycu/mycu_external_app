@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="ExternalApp"
+         name="Mycu: External App"
+         author="Mycu"
+         version="130"
+         date="2022-01-11"
+         lastupdate="1641891522"
+         save="false"
+         enabled="1"
+         description="X4 External App">
+    <dependency id="ws_2042901274" optional="false" name="SirNukes Mod Support APIs"/>
+
+</content>

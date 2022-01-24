@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="ExternalApp" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://mycu.kylos.pl/md.xsd">
+    <cues>
+        <cue name="OnLuaLoaderReady">
+            <conditions>
+                <event_ui_triggered screen="'Lua_Loader'" control="'Ready'"/>
+            </conditions>
+            <actions>
+                <raise_lua_event name="'Lua_Loader.Load'" param="'extensions.mycu_external_app.ui.ea'"/>
+            </actions>
+        </cue>
+
+        <cue name="OnLuaLoaderReadyCompleted">
+            <conditions>
+                <event_cue_completed cue="OnLuaLoaderReady"/>
+            </conditions>
+            <actions>
+                <reset_cue cue="OnLuaLoaderReady"/>
+                <reset_cue cue="this"/>
+            </actions>
+        </cue>
+
+        <!--
+          Register the pipe server with the python host.
+        -->
+        <cue name="Register_Pipe_Server" instantiate="true">
+            <conditions>
+                <event_cue_signalled cue="md.Pipe_Server_Host.Reloaded"/>
+            </conditions>
+            <actions>
+                <signal_cue_instantly
+                        cue="md.Pipe_Server_Host.Register_Module"
+                        param="'extensions/mycu_external_app/pipe_external.txt'"/>
+            </actions>
+        </cue>
+
+
+        <cue name="EA_Main">
+            <conditions>
+                <check_any>
+                    <event_cue_signalled cue="md.Setup.GameStart"/>
+                    <event_game_loaded/>
+                </check_any>
+            </conditions>
+            <actions>
+                <set_value name="$debugchance" exact="0"/>
+            </actions>
+            <cues>
+                <cue name="EA_callMessages" instantiate="true" checkinterval="3s">
+                    <actions>
+                        <raise_lua_event name="'externalapp.getMessages'" />
+                    </actions>
+                </cue>
+
+                <cue name="EA_writeMessages" instantiate="true">
+                    <conditions>
+                        <event_ui_triggered screen="'eventlog_ui_trigger'" control="'data_feed'"/>
+                    </conditions>
+                    <actions>
+                        <debug_text text="'Mycu EL: EA_writeMessages '" chance="$debugchance"/>
+
+                        <set_value name="$data" exact="event.param3"/>
+                        <debug_text text="'Mycu EL: $data ' + $data" chance="$debugchance"/>
+
+                        <signal_cue_instantly
+                                cue="md.Named_Pipes.Write"
+                                param="table[$pipe='x4_external_game', $msg=$data]"/>
+                    </actions>
+                </cue>
+            </cues>
+        </cue>
+
+        <cue name="Server_Reader_Wrapper">
+            <cues>
+                <cue name="Server_Reader" ref="md.Pipe_Server_Lib.Server_Reader">
+                    <param name="Actions_On_Reload" value="Actions_On_Reload"/>
+                    <param name="Actions_On_Connect" value="Actions_On_Connect"/>
+                    <param name="Actions_On_Read" value="Actions_On_Read"/>
+                </cue>
+            </cues>
+        </cue>
+
+        <library name="Actions_On_Reload">
+            <actions>
+                <set_value name="$Pipe_Name" exact="'x4_external_game'"/>
+            </actions>
+        </library>
+
+        <library name="Actions_On_Connect">
+            <actions>
+                <signal_cue cue="$Start_Reading"/>
+            </actions>
+        </library>
+
+        <library name="Actions_On_Read">
+            <actions>
+                <debug_text text="'Mycu EL: received mesage: %s.'.[event.param]"
+                            chance="$debugchance" filter="general"/>
+            </actions>
+        </library>
+    </cues>
+</mdscript>
