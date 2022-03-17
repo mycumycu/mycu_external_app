@@ -14,8 +14,14 @@ local external = {
 
 local function init ()
     -- DebugError("ea.lua: INIT")
-    RegisterEvent("externalapp.getMessages", external.getOutput)
-    mapMenu = Lib.Get_Egosoft_Menu("MapMenu")
+
+	-- Main event
+	RegisterEvent("externalapp.getMessages", external.getOutput)
+
+	-- Reputations and Professions mod event triggered after all available guild missions offers are created AFTER the player clicks on the "Connect to the Guild Network" button
+	RegisterEvent("kProfs.guildNetwork_onLoaded", external.getOutput)
+
+	mapMenu = Lib.Get_Egosoft_Menu("MapMenu")
 end
 
 function external.getOutput (_, param)
@@ -58,7 +64,7 @@ function external.getLogbook()
     local logbookNumEntries = GetNumLogbook(logbookCategory)
     local numQuery = math.min(maxEntries, logbookNumEntries)
 
-    local startIndex = logbookNumEntries - maxEntries + 1
+    local startIndex = math.max(1, logbookNumEntries - maxEntries + 1)
     local logbook = GetLogbook(startIndex, numQuery, logbookCategory) or {}
 
     for i = #logbook, 1, -1 do
@@ -114,7 +120,8 @@ function external.formatAsJSON(obj, buffer)
         obj = string.gsub(obj, "Z", "<span class='pale-grey'>")
         obj = string.gsub(obj, "X", "</span>")
         obj = string.gsub(obj, "", "")
-        buffer[#buffer + 1] = '"' .. obj .. '"'
+        obj = string.format("%q", obj)
+        buffer[#buffer + 1] = obj
     elseif _type == "boolean" or _type == "number" then
         buffer[#buffer + 1] = tostring(obj)
     else
