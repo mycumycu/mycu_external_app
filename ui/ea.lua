@@ -1,92 +1,35 @@
 local ffi = require("ffi")
 local C = ffi.C
 local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
-
+local widgets = require("extensions.mycu_external_app.ui.widgets")
 local mapMenu
+
 local external = {
-    output = {
-        player = {},
-        activeMissions = {},
-        missionoffers = {},
-        logbook = {},
-    }
+    output = {}
 };
 
 local function init ()
-    -- DebugError("ea.lua: INIT")
+    DebugError("ea.lua: INIT")
 
-	-- Main event
-	RegisterEvent("externalapp.getMessages", external.getOutput)
+    -- Main event
+    RegisterEvent("externalapp.getMessages", external.getOutput)
 
-	-- Reputations and Professions mod event triggered after all available guild missions offers are created AFTER the player clicks on the "Connect to the Guild Network" button
-	RegisterEvent("kProfs.guildNetwork_onLoaded", external.getOutput)
+    -- Reputations and Professions mod event triggered after all available guild missions offers are created AFTER the player clicks on the "Connect to the Guild Network" button
+    RegisterEvent("kProfs.guildNetwork_onLoaded", external.getOutput)
 
-	mapMenu = Lib.Get_Egosoft_Menu("MapMenu")
+    mapMenu = Lib.Get_Egosoft_Menu("MapMenu")
 end
 
 function external.getOutput (_, param)
-    -- DebugError("ea.lua: getMessages()")
-    external.output.logbook = {}
-
-    external.getPlayerName()
-    external.getPlayerFaction()
-    external.getPlayerCredits()
-    external.getPlayerSector()
-    external.getActiveMissions()
-    external.getLogbook()
-    external.getMissionOfferList()
+    external.loadWidgets()
 
     AddUITriggeredEvent("eventlog_ui_trigger", "data_feed", external.formatOutput(external.output))
 end
 
-
-function external.getPlayerName()
-    external.output.player.name = ffi.string(C.GetPlayerName());
-end
-
-function external.getPlayerFaction()
-    external.output.player.factionname = ffi.string(C.GetPlayerFactionName(true));
-end
-
-function external.getPlayerCredits()
-    external.output.player.credits = GetPlayerMoney();
-end
-
-function external.getPlayerSector()
-    local playersector = C.GetContextByClass(C.GetPlayerID(), "sector", false)
-    external.output.player.playersector = ffi.string(C.GetComponentName(playersector))
-end
-
-function external.getLogbook()
-
-    local maxEntries = 100
-    local logbookCategory = "all"
-    local logbookNumEntries = GetNumLogbook(logbookCategory)
-    local numQuery = math.min(maxEntries, logbookNumEntries)
-
-    local startIndex = math.max(1, logbookNumEntries - maxEntries + 1)
-    local logbook = GetLogbook(startIndex, numQuery, logbookCategory) or {}
-
-    for i = #logbook, 1, -1 do
-        local entry = logbook[i]
-        entry.passedtime = Helper.getPassedTime(entry.time)
-
-        -- local textcolor = entry.highlighted and Helper.color.red or Helper.standardColor
-        -- DebugError("ea.lua: title " .. tostring(entry.title))
-
-        table.insert(external.output.logbook, entry)
-    end
-end
-
-function external.getActiveMissions()
-    external.output.activeMissions = {}
-
-    local numMissions = GetNumMissions()
-    for i = 1, numMissions do
-        local entry = mapMenu.getMissionInfoHelper(i)
-        if entry.active then
-            table.insert(external.output.activeMissions, entry)
-        end
+function external.loadWidgets()
+    for key, widget in pairs(widgets) do
+        local output = require(widget.path) --this will be cached after first load
+        external.output[key] = output.handle()
     end
 end
 
@@ -137,126 +80,6 @@ function external.formatOutput(obj)
         external.formatAsJSON(obj, buffer)
         return table.concat(buffer)
     end
-end
-
-function external.getMissionOfferList()
-
-    local missionOfferCategories = {
-        { category = "plot", },
-        { category = "guild", },
-        { category = "coalition", },
-        { category = "other", },
-    }
-
-    local totalMissionOfferList = {}
-    for _, entry in ipairs(missionOfferCategories) do
-        totalMissionOfferList[entry.category] = {}
-    end
-
-    local missionOfferList, missionOfferIDs = {}, {}
-    Helper.ffiVLA(missionOfferList, "uint64_t", C.GetNumCurrentMissionOffers, C.GetCurrentMissionOffers, true)
-    for i, id in ipairs(missionOfferList) do
-        missionOfferIDs[tostring(id)] = i
-    end
-
-    for _, entry in ipairs(missionOfferCategories) do
-        if entry.category == "guild" then
-            for i, data in ipairs(totalMissionOfferList[entry.category]) do
-                for j = #data.missions, 1, -1 do
-                    if missionOfferIDs[data.missions[j].ID] then
-                        missionOfferIDs[totalMissionOfferList[entry.category][i].missions[j].ID] = nil
-                    else
-                        if not totalMissionOfferList[entry.category][i].missions[j].accepted then
-                            totalMissionOfferList[entry.category][i].missions[j].expired = true
-                        end
-                    end
-                end
-            end
-        else
-            for i = #totalMissionOfferList[entry.category], 1, -1 do
-                if missionOfferIDs[totalMissionOfferList[entry.category][i].ID] then
-                    missionOfferIDs[totalMissionOfferList[entry.category][i].ID] = nil
-                else
-                    if not totalMissionOfferList[entry.category][i].accepted then
-                        totalMissionOfferList[entry.category][i].expired = true
-                    end
-                end
-            end
-        end
-    end
-
-    for id in pairs(missionOfferIDs) do
-        local name, description, difficulty, threadtype, maintype, subtype, subtypename, faction, reward, rewardtext, briefingobjectives, activebriefingstep, briefingmissions, oppfaction, licence, missiontime, duration, _, _, _, _, actor = GetMissionOfferDetails(ConvertStringToLuaID(id))
-        local missionGroup = C.GetMissionGroupDetails(ConvertStringTo64Bit(id))
-        local groupID, groupName = ffi.string(missionGroup.id), ffi.string(missionGroup.name)
-        local onlineinfo = C.GetMissionOnlineInfo(ConvertStringTo64Bit(id))
-        local onlinechapter, onlineid = ffi.string(onlineinfo.chapter), ffi.string(onlineinfo.onlineid)
-
-        if maintype ~= "tutorial" then
-            local entry = {
-                ["name"] = name,
-                ["description"] = description,
-                ["difficulty"] = difficulty,
-                ["missionGroup"] = { id = groupID, name = groupName },
-                ["threadtype"] = threadtype,
-                ["type"] = subtype,
-                ["faction"] = faction or "",
-                ["oppfaction"] = oppfaction or "",
-                ["licence"] = licence,
-                ["reward"] = reward,
-                ["rewardtext"] = rewardtext,
-                ["briefingobjectives"] = briefingobjectives,
-                ["activebriefingstep"] = activebriefingstep,
-                ["duration"] = duration,
-                ["missiontime"] = missiontime,
-                ["ID"] = id,
-                ["actor"] = actor,
-                ["onlinechapter"] = onlinechapter,
-                ["onlineID"] = onlineid,
-                ["subMissions"] = {},
-            }
-
-            if entry.missionGroup.id ~= "" then
-                local index = 0
-                for i, data in ipairs(totalMissionOfferList["guild"]) do
-                    if data.id == entry.missionGroup.id then
-                        index = i
-                        break
-                    end
-                end
-                if index ~= 0 then
-                    table.insert(totalMissionOfferList["guild"][index].missions, entry)
-                else
-                    table.insert(totalMissionOfferList["guild"], { id = entry.missionGroup.id, name = entry.missionGroup.name, missions = { entry } })
-                end
-            else
-                if maintype == "plot" then
-                    table.insert(totalMissionOfferList["plot"], entry or 0)
-                elseif onlinechapter ~= "" then
-                    table.insert(totalMissionOfferList["coalition"], entry)
-                else
-                    table.insert(totalMissionOfferList["other"], entry)
-                end
-            end
-        end
-    end
-
-    table.sort(totalMissionOfferList["guild"], Helper.sortName)
-    for _, entry in ipairs(totalMissionOfferList["guild"]) do
-        table.sort(entry.missions, external.missionOfferSorter)
-    end
-    table.sort(totalMissionOfferList["plot"], external.missionOfferSorter)
-    table.sort(totalMissionOfferList["coalition"], external.missionOfferSorter)
-    table.sort(totalMissionOfferList["other"], external.missionOfferSorter)
-
-    external.output.missionOffers = totalMissionOfferList
-end
-
-function external.missionOfferSorter(a, b)
-    if a.name == b.name then
-        return a.ID > b.ID
-    end
-    return a.name < b.name
 end
 
 init()
