@@ -21,12 +21,14 @@ local function init ()
 end
 
 function external.getOutput (_, param)
-    external.loadWidgets()
+    external.fetchData()
 
     AddUITriggeredEvent("eventlog_ui_trigger", "data_feed", external.formatOutput(external.output))
 end
 
-function external.loadWidgets()
+function external.fetchData()
+    DebugError("ea.lua: FETCHING DATA!")
+
     for key, widget in pairs(widgets) do
         local output = require(widget.path) --this will be cached after first load
         external.output[key] = output.handle()

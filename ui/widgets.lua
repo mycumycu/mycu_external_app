@@ -11,4 +11,7 @@ return {
     missionOffers = {
         path = "extensions.mycu_external_app.ui.widgets.mission_offers",
     },
+    currentResearch = {
+        path = "extensions.mycu_external_app.ui.widgets.current_research",
+    },
 }
