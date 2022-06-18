@@ -27,8 +27,6 @@ function external.getOutput (_, param)
 end
 
 function external.fetchData()
-    DebugError("ea.lua: FETCHING DATA!")
-
     for key, widget in pairs(widgets) do
         local output = require(widget.path) --this will be cached after first load
         external.output[key] = output.handle()

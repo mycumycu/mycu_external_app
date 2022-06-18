@@ -4,6 +4,18 @@ local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
 
 local output = {}
 
+local function findTech(ftable, tech)
+    for i, mainentry in ipairs(ftable) do
+        for col, columnentry in ipairs(mainentry) do
+            for j, techentry in ipairs(columnentry) do
+                if techentry.tech == tech then
+                    return i, col, j
+                end
+            end
+        end
+    end
+end
+
 function output.handle()
     local data = {
         name = nil,
@@ -75,12 +87,73 @@ function output.handle()
         end
     end
 
+    local loopcounter = 0
+    local idx = 1
+    while #tempTechlist > 0 do
+        local techprecursors, sortorder = GetWareData(tempTechlist[idx], "researchprecursors", "sortorder")
+        -- print("    #precusors: " .. #techprecursors)
+        local precursordata = {}
+        local smallestMainIdx, foundPrecusorCol
+        -- try to find all precusors in existing data
+        for i, precursor in ipairs(techprecursors) do
+            local mainIdx, precursorCol = findTech(techTree, precursor)
+            -- print("    precusor " .. precursor .. ": " .. tostring(mainIdx) .. ", " .. tostring(precursorCol))
+            if mainIdx and ((not smallestMainIdx) or (smallestMainIdx > mainIdx)) then
+                smallestMainIdx = mainIdx
+                foundPrecusorCol = precursorCol
+            end
+            precursordata[i] = { mainIdx = mainIdx, precursorCol = precursorCol }
+        end
+        -- sort so that highest index comes first - important for deletion order and keeping smallestMainIdx valid
+
+        if smallestMainIdx then
+            -- print("    smallestMainIdx: " .. smallestMainIdx .. ", foundPrecusorCol: " .. foundPrecusorCol)
+            -- fix wares without precursors that there wrongly placed in different main entries
+            for i, entry in ipairs(precursordata) do
+                if entry.mainIdx and (entry.mainIdx ~= smallestMainIdx) then
+                    -- print("    precusor " .. techprecursors[i] .. " @ " .. entry.mainIdx .. " ... merging")
+                    for col, columndata in ipairs(techTree[entry.mainIdx]) do
+                        for techidx, techentry in ipairs(columndata) do
+                            table.insert(techTree[smallestMainIdx][col], techentry)
+                        end
+                    end
+                    -- print("    removing mainIdx " .. entry.mainIdx)
+                    table.remove(techTree, entry.mainIdx)
+                end
+            end
+
+            -- add this tech to the tree and remove it from the list
+            local state_completed = C.HasResearched(tempTechlist[idx])
+            if techTree[smallestMainIdx][foundPrecusorCol + 1] then
+                -- print("    adding")
+                table.insert(techTree[smallestMainIdx][foundPrecusorCol + 1], { tech = tempTechlist[idx], sortorder = sortorder, completed = state_completed })
+            else
+                -- print("    new entry")
+                techTree[smallestMainIdx][foundPrecusorCol + 1] = { [1] = { tech = tempTechlist[idx], sortorder = sortorder, completed = state_completed } }
+            end
+            -- print("    removed")
+            table.remove(tempTechlist, idx)
+        end
+
+        if idx >= #tempTechlist then
+            loopcounter = loopcounter + 1
+            idx = 1
+        else
+            idx = idx + 1
+        end
+        if loopcounter > 100 then
+            DebugError("Infinite loop detected - aborting.")
+            break
+        end
+    end
+
     for i, mainentry in ipairs(techTree) do
         lastsortorder = mainentry[1][1].sortorder
 
         local maxRows = 0
         for col, columnentry in ipairs(mainentry) do
             maxRows = math.max(maxRows, #columnentry)
+
             for j, techentry in ipairs(columnentry) do
                 local percentageCompleted = 0
 
@@ -90,15 +163,15 @@ function output.handle()
                     local proddata = GetProductionModuleData(ConvertStringTo64Bit(tostring(currentResearch[techentry.tech])))
                     percentageCompleted = Helper.round(math.max(0, currentResearch[techentry.tech] and (GetProductionModuleData(ConvertStringTo64Bit(tostring(currentResearch[techentry.tech]))).cycleprogress or 0) or 100))
 
+                    local researchName = GetWareData(techentry.tech, "name")
+                    local description, researchtime = GetWareData(techentry.tech, "description", "researchtime")
+
+                    data.name = researchName
+                    data.description = description
+                    data.researchtime = ConvertTimeString(researchtime)
+                    data.percentageCompleted = percentageCompleted
+
                     if proddata.state == "waitingforresources" then
-
-                        local researchName = GetWareData(techentry.tech, "name")
-                        local description, researchtime = GetWareData(techentry.tech, "description", "researchtime")
-
-                        data.name = researchName
-                        data.description = description
-                        data.researchtime = ConvertTimeString(researchtime)
-                        data.percentageCompleted = percentageCompleted
 
                         local resources, precursors = GetWareData(techentry.tech, "resources", "researchprecursors")
 
