@@ -7,14 +7,20 @@ local output = {}
 function output.handle()
     local data = {}
     local mapMenu = Lib.Get_Egosoft_Menu("MapMenu")
+    local missionBriefingMenu = Lib.Get_Egosoft_Menu("MissionBriefingMenu")
+
     local numMissions = GetNumMissions()
 
     for i = 1, numMissions do
         local entry = mapMenu.getMissionInfoHelper(i)
+
         if entry.active then
-            table.insert(data, entry)
+            local missionDetails = missionBriefingMenu.getMissionIDInfoHelper(ConvertIDTo64Bit(entry.ID))
+            table.insert(data, missionDetails)
+            break
         end
     end
+
     return data
 end
 
