@@ -53,8 +53,6 @@ function output.handle()
         local name, description, difficulty, threadtype, maintype, subtype, subtypename, faction, reward, rewardtext, briefingobjectives, activebriefingstep, briefingmissions, oppfaction, licence, missiontime, duration, _, _, _, _, actor = GetMissionOfferDetails(ConvertStringToLuaID(id))
         local missionGroup = C.GetMissionGroupDetails(ConvertStringTo64Bit(id))
         local groupID, groupName = ffi.string(missionGroup.id), ffi.string(missionGroup.name)
-        local onlineinfo = C.GetMissionOnlineInfo(ConvertStringTo64Bit(id))
-        local onlinechapter, onlineid = ffi.string(onlineinfo.chapter), ffi.string(onlineinfo.onlineid)
 
         if maintype ~= "tutorial" then
             local entry = {
@@ -75,8 +73,6 @@ function output.handle()
                 ["missiontime"] = missiontime,
                 ["ID"] = id,
                 ["actor"] = actor,
-                ["onlinechapter"] = onlinechapter,
-                ["onlineID"] = onlineid,
                 ["subMissions"] = {},
             }
 
