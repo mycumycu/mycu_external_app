@@ -54,6 +54,9 @@ function output.handle()
         local missionGroup = C.GetMissionGroupDetails(ConvertStringTo64Bit(id))
         local groupID, groupName = ffi.string(missionGroup.id), ffi.string(missionGroup.name)
 
+        local factionDetails = C.GetFactionDetails(faction)
+        local factionName = ffi.string(factionDetails.factionName)
+
         if maintype ~= "tutorial" then
             local entry = {
                 ["name"] = name,
@@ -62,7 +65,7 @@ function output.handle()
                 ["missionGroup"] = { id = groupID, name = groupName },
                 ["threadtype"] = threadtype,
                 ["type"] = subtype,
-                ["faction"] = faction or "",
+                ["factionname"] = factionName or "",
                 ["oppfaction"] = oppfaction or "",
                 ["licence"] = licence,
                 ["reward"] = reward,
