@@ -14,4 +14,7 @@ return {
     currentResearch = {
         path = "extensions.mycu_external_app.ui.widgets.current_research",
     },
+    transactionLog = {
+        path = "extensions.mycu_external_app.ui.widgets.transaction_log",
+    },
 }
