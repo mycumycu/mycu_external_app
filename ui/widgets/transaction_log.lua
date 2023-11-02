@@ -8,6 +8,7 @@ function output.handle()
 
     local endtime = C.GetCurrentGameTime()
     local starttime = math.max(0, endtime - 3600) -- just last hour
+    local maxEntries = 100 -- but no more than that
 
     -- transaction entries with data
     local container = C.GetPlayerID()
@@ -15,6 +16,9 @@ function output.handle()
     local buf = ffi.new("TransactionLogEntry[?]", n)
     n = C.GetTransactionLog(buf, n, container, starttime, endtime)
     for i = 0, n - 1 do
+        if i >= maxEntries then
+            break
+        end
         local partnername = ffi.string(buf[i].partnername)
 
         local entry = {
