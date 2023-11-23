@@ -15,10 +15,8 @@ function output.handle()
     local n = C.GetNumTransactionLog(container, starttime, endtime)
     local buf = ffi.new("TransactionLogEntry[?]", n)
     n = C.GetTransactionLog(buf, n, container, starttime, endtime)
+
     for i = 0, n - 1 do
-        if i >= maxEntries then
-            break
-        end
         local partnername = ffi.string(buf[i].partnername)
 
         local entry = {
@@ -81,7 +79,7 @@ function output.handle()
 
     table.sort(data, function(a,b) return a.time > b.time end) -- reverse order, from the most recent to the oldest
 
-    return data
+    return table.move(data, 1, maxEntries, 1, {}) -- return only the first maxEntries elements
 end
 
 return output
