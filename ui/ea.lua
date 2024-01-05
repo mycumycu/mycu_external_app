@@ -2,6 +2,8 @@ local ffi = require("ffi")
 local C = ffi.C
 local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
 local widgets = require("extensions.mycu_external_app.ui.widgets")
+local json = require("extensions.mycu_external_app.ui.dkjson")
+
 local mapMenu
 
 local external = {
@@ -21,9 +23,11 @@ local function init ()
 end
 
 function external.getOutput (_, param)
+    DebugError("ea.lua: getOutput BEFORE")
     external.fetchData()
+    DebugError("ea.lua: getOutput AFTER")
 
-    AddUITriggeredEvent("eventlog_ui_trigger", "data_feed", external.formatOutput(external.output))
+    AddUITriggeredEvent("eventlog_ui_trigger", "data_feed", external.toJson(external.output))
 end
 
 function external.fetchData()
@@ -33,53 +37,25 @@ function external.fetchData()
     end
 end
 
-function external.formatAsJSON(obj, buffer)
-    local _type = type(obj)
-    if _type == "table" then
-        buffer[#buffer + 1] = '{"'
-        if next(obj) ~= nil then
-            for key, value in next, obj, nil do
-                buffer[#buffer + 1] = tostring(key) .. '":'
-                external.formatAsJSON(value, buffer)
-                buffer[#buffer + 1] = ',"'
-            end
-            buffer[#buffer] = '}'
-        else
-            buffer[#buffer] = '""'
-        end
+function external.toJson(obj)
+    obj = external.removeUnsupportedTypes(obj)
 
-    elseif _type == "string" then
-        obj = string.gsub(obj, "\r?\n", "<br />")
-        obj = string.gsub(obj, "A", "<span class='grey'>")
-        obj = string.gsub(obj, "B", "<span class='blue'>")
-        obj = string.gsub(obj, "C", "<span class='cyan'>")
-        obj = string.gsub(obj, "G", "<span class='green'>")
-        obj = string.gsub(obj, "M", "<span class='magenta'>")
-        obj = string.gsub(obj, "O", "<span class='unknown'>")
-        obj = string.gsub(obj, "R", "<span class='red'>")
-        obj = string.gsub(obj, "U", "<span class='pale-blue'>")
-        obj = string.gsub(obj, "W", "<span class='white'>")
-        obj = string.gsub(obj, "Y", "<span class='yellow'>")
-        obj = string.gsub(obj, "Z", "<span class='pale-grey'>")
-        obj = string.gsub(obj, "X", "</span>")
-        obj = string.gsub(obj, "", "")
-        obj = string.format("%q", obj)
-        buffer[#buffer + 1] = obj
-    elseif _type == "boolean" or _type == "number" then
-        buffer[#buffer + 1] = tostring(obj)
-    else
-        buffer[#buffer + 1] = '"???' .. _type .. '???"'
-    end
+    return json.encode(obj)
 end
 
-function external.formatOutput(obj)
-    if obj == nil then
-        return "null"
-    else
-        local buffer = {}
-        external.formatAsJSON(obj, buffer)
-        return table.concat(buffer)
+function external.removeUnsupportedTypes (e)
+    if type(e) == "cname" or type(e) == "userdata" or type(e) == "cdata" then
+        -- set to nil
+        e = nil
     end
+
+    if type(e) == "table" then
+        for k, v in pairs(e) do
+            e[k] = external.removeUnsupportedTypes(v)
+        end
+    end
+
+    return e
 end
 
 init()
