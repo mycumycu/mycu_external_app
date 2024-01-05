@@ -32,30 +32,79 @@ end
 
 function external.fetchData()
     for key, widget in pairs(widgets) do
-        local output = require(widget.path) --this will be cached after first load
+        local output = require(widget.path) -- this will be cached after first load
         external.output[key] = output.handle()
     end
 end
 
+---
+--- Convert output to JSON
+---
 function external.toJson(obj)
-    obj = external.removeUnsupportedTypes(obj)
-
-    return json.encode(obj)
+    return json.encode(
+            external.normalizeOutput(obj)
+    )
 end
 
-function external.removeUnsupportedTypes (e)
-    if type(e) == "cname" or type(e) == "userdata" or type(e) == "cdata" then
-        -- set to nil
-        e = nil
+---
+--- Normalize output
+---
+function external.normalizeOutput(value)
+    local elementType = type(value)
+
+    if elementType == "cname" or elementType == "userdata" or elementType == "cdata" then
+        value = external.removeUnsupportedType(value)
     end
 
-    if type(e) == "table" then
-        for k, v in pairs(e) do
-            e[k] = external.removeUnsupportedTypes(v)
+    if elementType == "string" then
+        value = external.handleLineBreaks(value)
+        value = external.handleColorCodes(value)
+    end
+
+    if elementType == "table" then
+        for k, v in pairs(value) do
+            value[k] = external.normalizeOutput(v)
         end
     end
 
-    return e
+    return value
+end
+
+---
+--- Remove unsupported JSON types
+---
+function external.removeUnsupportedType ()
+
+    return nil
+end
+
+---
+--- Handle color codes
+---
+function external.handleColorCodes (value)
+    value = string.gsub(value, "A", "<span class='grey'>")
+    value = string.gsub(value, "B", "<span class='blue'>")
+    value = string.gsub(value, "C", "<span class='cyan'>")
+    value = string.gsub(value, "G", "<span class='green'>")
+    value = string.gsub(value, "M", "<span class='magenta'>")
+    value = string.gsub(value, "O", "<span class='unknown'>")
+    value = string.gsub(value, "R", "<span class='red'>")
+    value = string.gsub(value, "U", "<span class='pale-blue'>")
+    value = string.gsub(value, "W", "<span class='white'>")
+    value = string.gsub(value, "Y", "<span class='yellow'>")
+    value = string.gsub(value, "Z", "<span class='pale-grey'>")
+    value = string.gsub(value, "X", "</span>")
+    value = string.gsub(value, "", "")
+
+    return value
+end
+
+---
+--- Handle line breaks
+---
+function external.handleLineBreaks(value)
+
+    return string.gsub(value, "\r?\n", "<br />")
 end
 
 init()
