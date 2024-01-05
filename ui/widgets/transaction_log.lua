@@ -1,5 +1,6 @@
 local ffi = require("ffi")
 local C = ffi.C
+local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
 
 local output = {}
 
@@ -22,20 +23,14 @@ function output.handle()
         local entry = {
             time = buf[i].time,
             money = tonumber(buf[i].money) / 100,
-            entryid = ConvertStringTo64Bit(tostring(buf[i].entryid)),
-            eventtype = ffi.string(buf[i].eventtype),
             eventtypename = ffi.string(buf[i].eventtypename),
             partner = buf[i].partnerid,
             partnername = (partnername ~= "") and (partnername .. " (" .. ffi.string(buf[i].partneridcode) .. ")") or "",
-            tradeentryid = ConvertStringTo64Bit(tostring(buf[i].tradeentryid)),
-            tradeeventtype = ffi.string(buf[i].tradeeventtype),
-            tradeeventtypename = ffi.string(buf[i].tradeeventtypename),
             buyer = buf[i].buyerid,
             seller = buf[i].sellerid,
             ware = ffi.string(buf[i].ware),
             amount = buf[i].amount,
             price = tonumber(buf[i].price) / 100,
-            complete = buf[i].complete,
             description = "",
         }
 

@@ -16,6 +16,9 @@ function output.handle()
 
         if entry.active then
             local missionDetails = missionBriefingMenu.getMissionIDInfoHelper(ConvertIDTo64Bit(entry.ID))
+            missionDetails.deliveryWares = nil
+            missionDetails.briefingmissions = nil
+            missionDetails.briefingobjectives = nil
             table.insert(data, missionDetails)
             break
         end

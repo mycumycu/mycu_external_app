@@ -1,5 +1,6 @@
 local ffi = require("ffi")
 local C = ffi.C
+local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
 
 local output = {}
 
@@ -15,7 +16,15 @@ function output.handle()
 
     for i = #logbook, 1, -1 do
         local entry = logbook[i]
+
         entry.passedtime = Helper.getPassedTime(entry.time)
+        entry.category = nil
+        entry.entityname = nil
+        entry.interaction = nil
+        entry.interactionposition = nil
+        entry.interactiontext = nil
+        entry.interactioncomponent = nil
+
         table.insert(data, entry)
     end
 
