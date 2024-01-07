@@ -23,9 +23,7 @@ local function init ()
 end
 
 function external.getOutput (_, param)
-    DebugError("ea.lua: getOutput BEFORE")
     external.fetchData()
-    DebugError("ea.lua: getOutput AFTER")
 
     AddUITriggeredEvent("eventlog_ui_trigger", "data_feed", external.toJson(external.output))
 end
