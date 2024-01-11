@@ -21,6 +21,13 @@ local function relationColor(faction)
 end
 
 ---
+--- Sort factions by shortname
+---
+local function sortShortname(a, b)
+    return a.shortname < b.shortname
+end
+
+---
 ---
 ---
 function output.handle()
@@ -35,7 +42,7 @@ function output.handle()
         faction.currentGameTime = C.GetCurrentGameTime()
     end
 
-    table.sort(factions, Helper.sortName)
+    table.sort(factions, sortShortname)
 
     return factions
 end
