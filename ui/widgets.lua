@@ -17,4 +17,7 @@ return {
     transactionLog = {
         path = "extensions.mycu_external_app.ui.widgets.transaction_log",
     },
+    factions = {
+        path = "extensions.mycu_external_app.ui.widgets.factions",
+    },
 }
