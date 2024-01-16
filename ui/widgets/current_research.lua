@@ -114,7 +114,9 @@ function output.handle()
                     -- print("    precusor " .. techprecursors[i] .. " @ " .. entry.mainIdx .. " ... merging")
                     for col, columndata in ipairs(techTree[entry.mainIdx]) do
                         for techidx, techentry in ipairs(columndata) do
-                            table.insert(techTree[smallestMainIdx][col], techentry)
+                            if (techTree[smallestMainIdx][col] ~= nil) then
+                                table.insert(techTree[smallestMainIdx][col], techentry)
+                            end
                         end
                     end
                     -- print("    removing mainIdx " .. entry.mainIdx)
