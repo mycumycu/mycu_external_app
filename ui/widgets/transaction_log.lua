@@ -1,6 +1,7 @@
 local ffi = require("ffi")
 local C = ffi.C
 local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
+local verboseTransactionLog = require("extensions.mycu_verbose_transaction_log.ui.verbose_transaction_log")
 
 local output = {}
 
@@ -21,6 +22,7 @@ function output.handle()
         local partnername = ffi.string(buf[i].partnername)
 
         local entry = {
+            entryid = ConvertStringTo64Bit(tostring(buf[i].entryid)),
             time = buf[i].time,
             money = tonumber(buf[i].money) / 100,
             eventtypename = ffi.string(buf[i].eventtypename),
@@ -69,10 +71,19 @@ function output.handle()
         end
 
         entry.passedtime = Helper.getPassedTime(entry.time)
+
+        if (verboseTransactionLog ~= nil) then
+            -- if verbose transaction mod is enabled - add verbose description
+            entry = verboseTransactionLog.setEntryDescription(entry)
+        end
+
         table.insert(data, entry)
     end
 
-    table.sort(data, function(a,b) return a.time > b.time end) -- reverse order, from the most recent to the oldest
+    -- sort in reverse order, from the most recent to the oldest
+    table.sort(data, function(a, b)
+        return a.time > b.time
+    end)
 
     return table.move(data, 1, maxEntries, 1, {}) -- return only the first maxEntries elements
 end
