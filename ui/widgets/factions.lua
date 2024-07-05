@@ -16,7 +16,7 @@ local function relationColor(faction)
     elseif GetFactionData(faction, "isenemy") then
         return holomapcolor.enemycolor
     else
-        return Helper.color.white
+        return { r = 255, g = 255, b = 255, a = 100 } -- color white
     end
 end
 
