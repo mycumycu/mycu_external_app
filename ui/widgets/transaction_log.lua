@@ -1,7 +1,7 @@
 local ffi = require("ffi")
 local C = ffi.C
 local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
-local verboseTransactionLog = require("extensions.mycu_verbose_transaction_log.ui.verbose_transaction_log")
+local verboseTransactionLogInstalled, verboseTransactionLog = pcall(require, "extensions.mycu_verbose_transaction_log.ui.verbose_transaction_log")
 
 local output = {}
 
@@ -72,7 +72,7 @@ function output.handle()
 
         entry.passedtime = Helper.getPassedTime(entry.time)
 
-        if (verboseTransactionLog ~= nil) then
+        if (verboseTransactionLogInstalled) then
             -- if verbose transaction mod is enabled - add verbose description
             entry = verboseTransactionLog.setEntryDescription(entry)
         end
