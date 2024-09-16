@@ -3,6 +3,7 @@ local C = ffi.C
 local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
 local widgets = require("extensions.mycu_external_app.ui.widgets")
 local json = require("extensions.mycu_external_app.ui.dkjson")
+local helper = require("extensions.mycu_external_app.ui.helper")
 
 local mapMenu
 
@@ -57,6 +58,7 @@ function external.normalizeOutput(value)
     if elementType == "string" then
         value = external.handleLineBreaks(value)
         value = external.handleColorCodes(value)
+        value = helper.handleFactionColors(value)
     end
 
     if elementType == "table" then

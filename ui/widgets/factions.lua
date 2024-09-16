@@ -1,6 +1,7 @@
 local ffi = require("ffi")
 local C = ffi.C
 local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
+local helper = require("extensions.mycu_external_app.ui.helper")
 
 local output = {}
 
@@ -24,7 +25,10 @@ end
 --- Sort factions by shortname
 ---
 local function sortShortname(a, b)
-    return a.shortname < b.shortname
+    local aShortname = helper.handleFactionColors(a.shortname)
+    local bShortname = helper.handleFactionColors(b.shortname)
+
+    return aShortname < bShortname
 end
 
 ---
