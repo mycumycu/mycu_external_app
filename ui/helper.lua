@@ -8,5 +8,4 @@ return {
 
         return text or value
     end
-
 }

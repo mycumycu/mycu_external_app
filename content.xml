@@ -2,11 +2,11 @@
 <content id="ExternalApp"
          name="Mycu: External App"
          author="Mycu"
-         version="260"
-         date="2024-09-16"
+         version="300"
+         date="2025-04-07"
          save="false"
          enabled="1"
          description="X4 External App">
-    <dependency id="ws_2042901274" optional="false" name="SirNukes Mod Support APIs"/>
+    <dependency id="djfhe_http" optional="false" name="djfhe Http library for x4"/>
     <dependency id="VerboseTransactionLog" optional="true" name="Mycu: Verbose Transaction Log"/>
 </content>

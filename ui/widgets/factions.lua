@@ -1,7 +1,6 @@
 local ffi = require("ffi")
 local C = ffi.C
-local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
-local helper = require("extensions.mycu_external_app.ui.helper")
+local helper = require("helper")
 
 local output = {}
 

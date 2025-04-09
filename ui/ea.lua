@@ -1,9 +1,5 @@
-local ffi = require("ffi")
-local C = ffi.C
-local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
-local widgets = require("extensions.mycu_external_app.ui.widgets")
-local json = require("extensions.mycu_external_app.ui.dkjson")
-local helper = require("extensions.mycu_external_app.ui.helper")
+local widgets
+local helper
 
 local mapMenu
 
@@ -11,38 +7,52 @@ local external = {
     output = {}
 };
 
+local request = require("djfhe.http.request")
+local method = 'POST'
+local apiUrl = "http://" .. host .. ":" .. port .. "/api/data"
+
 local function init ()
-    DebugError("ea.lua: INIT")
+    package.path = package.path .. ";extensions/mycu_external_app/ui/?.lua";
+    widgets = require("widgets")
+    helper = require("helper")
+
+    mapMenu = Helper.getMenu("MapMenu")
 
     -- Main event
-    RegisterEvent("externalapp.getMessages", external.getOutput)
+    RegisterEvent("externalapp.getMessages", external.send)
 
     -- Reputations and Professions mod event triggered after all available guild missions offers are created AFTER the player clicks on the "Connect to the Guild Network" button
-    RegisterEvent("kProfs.guildNetwork_onLoaded", external.getOutput)
-
-    mapMenu = Lib.Get_Egosoft_Menu("MapMenu")
+    RegisterEvent("kProfs.guildNetwork_onLoaded", external.send)
 end
 
-function external.getOutput (_, param)
+---
+--- Send data to external app server
+---
+function external.send (_, param)
     external.fetchData()
 
-    AddUITriggeredEvent("eventlog_ui_trigger", "data_feed", external.toJson(external.output))
+    local payload = external.normalizeOutput(external.output)
+
+    request.new(method)
+           :setUrl(apiUrl)
+           :setBody(payload)
+           :send(
+            function(response, err)
+                if err then
+                    --DebugError("Error occured while sending data to External App Server: " .. tostring(err))
+                end
+            end
+    )
 end
 
+---
+--- Fetch data from widgets
+---
 function external.fetchData()
     for key, widget in pairs(widgets) do
         local output = require(widget.path) -- this will be cached after first load
         external.output[key] = output.handle()
     end
-end
-
----
---- Convert output to JSON
----
-function external.toJson(obj)
-    return json.encode(
-            external.normalizeOutput(obj)
-    )
 end
 
 ---

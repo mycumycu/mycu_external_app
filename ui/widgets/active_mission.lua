@@ -1,13 +1,9 @@
-local ffi = require("ffi")
-local C = ffi.C
-local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
-
 local output = {}
 
 function output.handle()
     local data = {}
-    local mapMenu = Lib.Get_Egosoft_Menu("MapMenu")
-    local missionBriefingMenu = Lib.Get_Egosoft_Menu("MissionBriefingMenu")
+    local mapMenu = Helper.getMenu("MapMenu")
+    local missionBriefingMenu = Helper.getMenu("MissionBriefingMenu")
 
     local numMissions = GetNumMissions()
 

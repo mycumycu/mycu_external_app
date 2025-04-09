@@ -1,23 +1,23 @@
 return {
     playerProfile = {
-        path = "extensions.mycu_external_app.ui.widgets.player_profile",
+        path = "widgets.player_profile",
     },
     activeMission = {
-        path = "extensions.mycu_external_app.ui.widgets.active_mission",
+        path = "widgets.active_mission",
     },
     logbook = {
-        path = "extensions.mycu_external_app.ui.widgets.logbook",
+        path = "widgets.logbook",
     },
     missionOffers = {
-        path = "extensions.mycu_external_app.ui.widgets.mission_offers",
+        path = "widgets.mission_offers",
     },
     currentResearch = {
-        path = "extensions.mycu_external_app.ui.widgets.current_research",
+        path = "widgets.current_research",
     },
     transactionLog = {
-        path = "extensions.mycu_external_app.ui.widgets.transaction_log",
+        path = "widgets.transaction_log",
     },
     factions = {
-        path = "extensions.mycu_external_app.ui.widgets.factions",
+        path = "widgets.factions",
     },
 }

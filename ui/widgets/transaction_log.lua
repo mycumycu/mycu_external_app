@@ -1,6 +1,5 @@
 local ffi = require("ffi")
 local C = ffi.C
-local Lib = require("extensions.sn_mod_support_apis.lua_interface").Library
 local verboseTransactionLogInstalled, verboseTransactionLog = pcall(require, "extensions.mycu_verbose_transaction_log.ui.verbose_transaction_log")
 
 local output = {}
