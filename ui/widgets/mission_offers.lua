@@ -62,6 +62,7 @@ function output.handle()
                 ["name"] = name,
                 ["description"] = description,
                 ["difficulty"] = difficulty,
+                ["duration"] = duration,
                 ["missionGroup"] = { id = groupID, name = groupName },
                 ["threadtype"] = threadtype,
                 ["type"] = subtype,
