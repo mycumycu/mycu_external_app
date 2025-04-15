@@ -4,7 +4,7 @@ return {
     ---
     handleFactionColors = function(value)
         -- remove color codes between #FF and #
-        local text = string.match(value, "#[fF][fF][%x]+#(.+)")
+        local text = string.gsub(value, "#[Ff][Ff].-#", "")
 
         return text or value
     end
