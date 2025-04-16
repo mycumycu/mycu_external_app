@@ -73,6 +73,7 @@ function output.handle()
                 ["rewardtext"] = rewardtext,
                 ["activebriefingstep"] = activebriefingstep,
                 ["missiontime"] = missiontime,
+                ["briefingobjectives"] = briefingobjectives,
                 ["ID"] = id,
                 ["subMissions"] = {},
             }
