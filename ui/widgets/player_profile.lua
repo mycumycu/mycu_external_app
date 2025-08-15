@@ -5,12 +5,14 @@ local output = {}
 
 function output.handle()
     local playersector = C.GetContextByClass(C.GetPlayerID(), "sector", false)
-    local data = {}
-
-    data.name = ffi.string(C.GetPlayerName())
-    data.factionname = ffi.string(C.GetPlayerFactionName(true))
-    data.credits = GetPlayerMoney()
-    data.playersector = ffi.string(C.GetComponentName(playersector))
+    local sectorownerFaction = GetComponentData(ConvertStringTo64Bit(tostring(playersector)), "owner");
+    local data = {
+        name = ffi.string(C.GetPlayerName());
+        factionname = ffi.string(C.GetPlayerFactionName(true));
+        credits = GetPlayerMoney();
+        sectorname = ffi.string(C.GetComponentName(playersector));
+        sectorowner = GetFactionData(sectorownerFaction, "shortname")
+    }
 
     return data;
 end
