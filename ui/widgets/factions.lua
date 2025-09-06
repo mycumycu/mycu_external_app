@@ -1,6 +1,5 @@
 local ffi = require("ffi")
 local C = ffi.C
-local helper = require("helper")
 
 local output = {}
 
@@ -24,8 +23,8 @@ end
 --- Sort factions by shortname
 ---
 local function sortShortname(a, b)
-    local aShortname = helper.handleFactionColors(a.shortname)
-    local bShortname = helper.handleFactionColors(b.shortname)
+    local aShortname = output.handleFactionColors(a.shortname)
+    local bShortname = output.handleFactionColors(b.shortname)
 
     return aShortname < bShortname
 end
@@ -48,6 +47,16 @@ function output.handle()
     table.sort(factions, sortShortname)
 
     return factions
+end
+
+---
+--- Handle color codes
+---
+function output.handleFactionColors(value)
+    -- remove color codes between #FF and #
+    local text = string.gsub(value, "#[Ff][Ff].-#", "")
+
+    return text or value
 end
 
 return output
