@@ -12,7 +12,7 @@
                 <set_value name="$debugchance" exact="0"/>
             </actions>
             <cues>
-                <cue name="EA_callMessages" instantiate="true" checkinterval="3s">
+                <cue name="EA_callMessages" instantiate="true" checkinterval="1s">
                     <actions>
                         <raise_lua_event name="'externalapp.getMessages'" />
                     </actions>

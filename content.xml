@@ -2,8 +2,8 @@
 <content id="ExternalApp"
          name="Mycu: External App"
          author="Mycu"
-         version="330"
-         date="2025-08-15"
+         version="331"
+         date="2025-09-06"
          save="false"
          enabled="1"
          description="X4 External App">
