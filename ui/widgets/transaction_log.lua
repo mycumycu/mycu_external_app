@@ -2,7 +2,10 @@ local ffi = require("ffi")
 local C = ffi.C
 local verboseTransactionLogInstalled, verboseTransactionLog = pcall(require, "extensions.mycu_verbose_transaction_log.ui.verbose_transaction_log")
 
-local output = {}
+local output = {
+    -- Properties to exclude from hash calculation (frequently changing non-essential data)
+    hashExclusions = { "time" }
+}
 
 function output.handle()
     local data = {}
@@ -68,8 +71,6 @@ function output.handle()
                 entry.partnername = ""
             end
         end
-
-        entry.passedtime = Helper.getPassedTime(entry.time)
 
         if (verboseTransactionLogInstalled) then
             -- if verbose transaction mod is enabled - add verbose description

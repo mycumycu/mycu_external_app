@@ -1,7 +1,10 @@
 local ffi = require("ffi")
 local C = ffi.C
 
-local output = {}
+local output = {
+    -- Properties to exclude from hash calculation (frequently changing non-essential data)
+    hashExclusions = { "currentGameTime" }
+}
 
 ---
 --- Get the relation color table

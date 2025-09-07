@@ -1,4 +1,7 @@
-local output = {}
+local output = {
+    -- Properties to exclude from hash calculation (frequently changing non-essential data)
+    hashExclusions = { "time" }
+}
 
 function output.handle()
     local data = {}
@@ -13,7 +16,6 @@ function output.handle()
     for i = #logbook, 1, -1 do
         local entry = logbook[i]
 
-        entry.passedtime = Helper.getPassedTime(entry.time)
         entry.category = nil
         entry.entityname = nil
         entry.interaction = nil
