@@ -57,7 +57,10 @@ function external.fetchData()
             -- Process only the widgets that belong to the current group
             if group == widgetGroupToProcess then
                 local output = require(widget.path) -- this will be cached after first load
-                payload[key] = output.handle()
+                local result = output.handle()
+                if result ~= nil then
+                    payload[key] = result
+                end
                 break
             end
         end
