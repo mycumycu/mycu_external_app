@@ -4,21 +4,59 @@ local verboseTransactionLogInstalled, verboseTransactionLog = pcall(require, "ex
 
 local output = {
     -- Properties to exclude from hash calculation (frequently changing non-essential data)
-    hashExclusions = { "time" }
+    hashExclusions = { "time" },
+    -- Store the last check state for comparison
+    lastTransactionCount = nil,
+    lastMostRecentTime = nil
 }
 
 function output.handle()
-    local data = {}
-
     local endtime = C.GetCurrentGameTime()
     local starttime = math.max(0, endtime - 3600) -- just last hour
     local maxEntries = 100 -- but no more than that
 
-    -- transaction entries with data
     local container = C.GetPlayerID()
     local n = C.GetNumTransactionLog(container, starttime, endtime)
+
+    -- If no entries, return nil
+    if n == 0 then
+        return nil
+    end
+
+    -- Get a few recent entries to find the most recent one
+    local checkCount = math.min(5, n) -- Check up to 5 entries to find the most recent
+    local recentBuf = ffi.new("TransactionLogEntry[?]", checkCount)
+    local recentNumCheck = C.GetNumTransactionLog(container, starttime, endtime)
+    local recentN = C.GetTransactionLog(recentBuf, math.min(checkCount, recentNumCheck), container, starttime, endtime)
+
+    if recentN == 0 then
+        return nil
+    end
+
+    -- Find the most recent entry (highest time)
+    local mostRecentEntry = recentBuf[0]
+    for i = 1, recentN - 1 do
+        if recentBuf[i].time > mostRecentEntry.time then
+            mostRecentEntry = recentBuf[i]
+        end
+    end
+
+    local currentMostRecentTime = mostRecentEntry.time
+
+    -- Check if we should skip the update
+    if output.lastTransactionCount and output.lastMostRecentTime then
+        -- If transaction count is the same AND most recent time is the same, skip update
+        if n == output.lastTransactionCount and currentMostRecentTime == output.lastMostRecentTime then
+            return nil
+        end
+    end
+
+    -- Changes detected, fetch all entries
+    n = C.GetNumTransactionLog(container, starttime, endtime)
     local buf = ffi.new("TransactionLogEntry[?]", n)
     n = C.GetTransactionLog(buf, n, container, starttime, endtime)
+
+    local data = {}
 
     for i = 0, n - 1 do
         local partnername = ffi.string(buf[i].partnername)
@@ -80,12 +118,18 @@ function output.handle()
         table.insert(data, entry)
     end
 
-    -- sort in reverse order, from the most recent to the oldest
+    -- Sort in reverse order, from the most recent to the oldest
     table.sort(data, function(a, b)
         return a.time > b.time
     end)
 
-    return table.move(data, 1, maxEntries, 1, {}) -- return only the first maxEntries elements
+    -- Store the current state for next comparison
+    output.lastTransactionCount = n
+    -- Always use the currentMostRecentTime we calculated during the quick check
+    output.lastMostRecentTime = currentMostRecentTime
+
+    -- Return only the first maxEntries elements
+    return table.move(data, 1, maxEntries, 1, {})
 end
 
 return output
