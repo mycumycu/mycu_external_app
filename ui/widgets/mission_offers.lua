@@ -51,7 +51,7 @@ function output.handle()
 
     for id in pairs(missionOfferIDs) do
         local name, description, difficulty, threadtype, maintype, subtype, subtypename, faction, reward, rewardtext, briefingobjectives, activebriefingstep, briefingmissions, oppfaction, licence, missiontime, duration, _, _, _, _, actor = GetMissionOfferDetails(ConvertStringToLuaID(id))
-        local missionGroup = C.GetMissionGroupDetails(ConvertStringTo64Bit(id))
+        local missionGroup = C.GetMissionGroupDetails2(ConvertStringTo64Bit(id))
         local groupID, groupName = ffi.string(missionGroup.id), ffi.string(missionGroup.name)
 
         local factionDetails = C.GetFactionDetails(faction)
