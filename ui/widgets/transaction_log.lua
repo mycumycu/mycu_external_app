@@ -1,6 +1,8 @@
+package.path = package.path .. ";extensions/mycu_verbose_transaction_log/ui/?.lua";
+
 local ffi = require("ffi")
 local C = ffi.C
-local verboseTransactionLogInstalled, verboseTransactionLog = pcall(require, "extensions.mycu_verbose_transaction_log.ui.verbose_transaction_log")
+local verboseTransactionLogInstalled, verboseTransactionLog = pcall(require, "verbose_transaction_log")
 
 local output = {
     -- Properties to exclude from hash calculation (frequently changing non-essential data)
@@ -112,6 +114,7 @@ function output.handle()
 
         if (verboseTransactionLogInstalled) then
             -- if verbose transaction mod is enabled - add verbose description
+            verboseTransactionLog.boot()
             entry = verboseTransactionLog.setEntryDescription(entry)
         end
 
