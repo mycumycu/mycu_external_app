@@ -33,4 +33,8 @@ return {
         path = "widgets.logbook",
         groups = { 3 },
     },
+    agents = {
+        path = "widgets.agents",
+        groups = { 1, 2, 3 },
+    },
 }
