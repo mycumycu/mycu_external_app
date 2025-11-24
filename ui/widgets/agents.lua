@@ -419,6 +419,7 @@ function output.handle()
 
         local isFemale = GetComponentData(agentLuaId, "isfemale")
         local agentIcon = GetComponentData(agentLuaId, "agenticon")
+        local injuryEndTime = GetNPCBlackboard(agentLuaId, "$diplomacy_injury_endtime") or -1
 
         local agentData = {
             id = agentId,
@@ -436,6 +437,8 @@ function output.handle()
             },
             negotiationLevel = ffi.string(attributes.exp_negotiation_name),
             espionageLevel = ffi.string(attributes.exp_espionage_name),
+            injuryEndTime = injuryEndTime,
+            isInjured = (injuryEndTime > 0) and (injuryEndTime >= currentGameTime),
         }
 
         local eventOperation = eventOperationsByAgent[agentKey]
@@ -460,6 +463,8 @@ function output.handle()
                 ship = agentData.ship,
                 negotiationLevel = agentData.negotiationLevel,
                 espionageLevel = agentData.espionageLevel,
+                injuryEndTime = agentData.injuryEndTime,
+                isInjured = agentData.isInjured,
             },
             currentMission = agentData.currentMission,
         }
