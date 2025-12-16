@@ -8,6 +8,7 @@ local output = {
 function output.handle()
     local maxEntries = 100
     local logbookCategory = "all"
+    local logbookQueryLimit = 1000  -- GetLogbook limit per query
     local logbookNumEntries = GetNumLogbook(logbookCategory)
 
     -- If no entries, return nil
@@ -38,28 +39,41 @@ function output.handle()
         return nil
     end
 
-    -- Changes detected, fetch all entries
-    local numQuery = math.min(maxEntries, logbookNumEntries)
-    local startIndex = math.max(1, logbookNumEntries - maxEntries + 1)
-    local logbook = GetLogbook(startIndex, numQuery, logbookCategory) or {}
-
+    -- Changes detected, fetch entries in chunks
+    local totalToFetch = math.min(maxEntries, logbookNumEntries)
+    local startIndex = math.max(1, logbookNumEntries - totalToFetch + 1)
     local data = {}
-    for i = #logbook, 1, -1 do
-        local entry = logbook[i]
-        entry.category = nil
-        entry.entityname = nil
-        entry.interaction = nil
-        entry.interactionposition = nil
-        entry.interactiontext = nil
-        entry.interactioncomponent = nil
 
-        table.insert(data, entry)
+    -- Fetch in chunks of logbookQueryLimit
+    local numChunks = math.ceil(totalToFetch / logbookQueryLimit)
+    for i = 1, numChunks do
+        local chunkStart = startIndex + (i - 1) * logbookQueryLimit
+        local chunkSize = math.min(logbookQueryLimit, totalToFetch - (i - 1) * logbookQueryLimit)
+        local logbook = GetLogbook(chunkStart, chunkSize, logbookCategory) or {}
+
+        for j = 1, #logbook do
+            local entry = logbook[j]
+            entry.category = nil
+            entry.entityname = nil
+            entry.interaction = nil
+            entry.interactionposition = nil
+            entry.interactiontext = nil
+            entry.interactioncomponent = nil
+
+            table.insert(data, entry)
+        end
+    end
+
+    -- Reverse to get newest first
+    local reversed = {}
+    for i = #data, 1, -1 do
+        table.insert(reversed, data[i])
     end
 
     -- Store the most recent entry for next comparison
     output.lastEntry = cleanEntry
 
-    return data
+    return reversed
 end
 
 ---
