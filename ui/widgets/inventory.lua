@@ -3,6 +3,11 @@
 local ffi = require("ffi")
 local C = ffi.C
 
+ffi.cdef[[
+    typedef uint64_t UniverseID;
+    UniverseID GetPlayerZoneID(void);
+]]
+
 local output = {
     -- Properties to exclude from hash calculation (frequently changing non-essential data)
     hashExclusions = { "currentGameTime" }
@@ -39,9 +44,30 @@ end
 function output.handle()
     local data = {}
 
-    local rawInv = GetPlayerInventory()
+    -- Get police faction for illegal ware checks
+    local playerZoneID = C.GetPlayerZoneID()
+    local policeFaction = GetComponentData(ConvertStringTo64Bit(tostring(playerZoneID)), "policefaction")
 
-    data.inventory = rawInv
+    local rawInv = GetPlayerInventory()
+    local inventory = {}
+
+    for ware, wareData in pairs(rawInv) do
+        local name = GetWareData(ware, "name")
+        local isIllegal = false
+        if policeFaction then
+            isIllegal = IsWareIllegalTo(ware, "player", policeFaction)
+        end
+
+        inventory[ware] = {
+            name = name,
+            amount = wareData.amount,
+            price = wareData.price,
+            illegal = isIllegal
+        }
+    end
+
+    data.inventory = inventory
+    data.policeFaction = policeFaction
 
     return data
 end
