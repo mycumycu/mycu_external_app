@@ -37,4 +37,8 @@ return {
         path = "widgets.agents",
         groups = { 1, 2, 3 },
     },
+    inventory = {
+        path = "widgets.inventory",
+        groups = { 3 },
+    },
 }
