@@ -9,13 +9,14 @@ local output = {
     hashExclusions = { "time" },
     -- Store the last check state for comparison
     lastTransactionCount = nil,
-    lastMostRecentTime = nil
+    lastMostRecentTime = nil,
+    isFirstFetch = true
 }
 
 function output.handle()
     local endtime = C.GetCurrentGameTime()
-    local starttime = math.max(0, endtime - 3600) -- just last hour
-    local maxEntries = 100 -- but no more than that
+    local starttime = 0
+    local maxEntries = output.isFirstFetch and 1000 or 30
 
     local container = C.GetPlayerID()
     local n = C.GetNumTransactionLog(container, starttime, endtime)
@@ -53,14 +54,15 @@ function output.handle()
         end
     end
 
-    -- Changes detected, fetch all entries
+    -- Changes detected, fetch all entries into C buffer (cheap), but only process the most recent ones (expensive)
     n = C.GetNumTransactionLog(container, starttime, endtime)
     local buf = ffi.new("TransactionLogEntry[?]", n)
     n = C.GetTransactionLog(buf, n, container, starttime, endtime)
 
     local data = {}
+    local startIdx = math.max(0, n - maxEntries)
 
-    for i = 0, n - 1 do
+    for i = startIdx, n - 1 do
         local partnername = ffi.string(buf[i].partnername)
 
         local entry = {
@@ -128,11 +130,10 @@ function output.handle()
 
     -- Store the current state for next comparison
     output.lastTransactionCount = n
-    -- Always use the currentMostRecentTime we calculated during the quick check
     output.lastMostRecentTime = currentMostRecentTime
+    output.isFirstFetch = false
 
-    -- Return only the first maxEntries elements
-    return table.move(data, 1, maxEntries, 1, {})
+    return data
 end
 
 return output

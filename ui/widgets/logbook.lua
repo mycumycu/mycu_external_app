@@ -2,11 +2,12 @@ local output = {
     -- Properties to exclude from hash calculation (frequently changing non-essential data)
     hashExclusions = { "time" },
     -- Store the last fetched entry for comparison
-    lastEntry = nil
+    lastEntry = nil,
+    isFirstFetch = true
 }
 
 function output.handle()
-    local maxEntries = 100
+    local maxEntries = output.isFirstFetch and 1000 or 30
     local logbookCategory = "all"
     local logbookQueryLimit = 1000  -- GetLogbook limit per query
     local logbookNumEntries = GetNumLogbook(logbookCategory)
@@ -72,6 +73,7 @@ function output.handle()
 
     -- Store the most recent entry for next comparison
     output.lastEntry = cleanEntry
+    output.isFirstFetch = false
 
     return reversed
 end
