@@ -44,6 +44,9 @@ function external.send (_, param)
                 if err then
                     DebugError("Error occured while sending data to External App Server: " .. tostring(err))
                 end
+                if response then
+                    response:cancel()
+                end
             end
     )
 end
