@@ -16,10 +16,10 @@ local output = {
 function output.handle()
     local endtime = C.GetCurrentGameTime()
     local starttime = 0
-    local maxEntries = output.isFirstFetch and 1000 or 30
 
     local container = C.GetPlayerID()
     local n = C.GetNumTransactionLog(container, starttime, endtime)
+    local maxEntries = output.isFirstFetch and n or 30
 
     -- If no entries, return nil
     if n == 0 then

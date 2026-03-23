@@ -7,10 +7,10 @@ local output = {
 }
 
 function output.handle()
-    local maxEntries = output.isFirstFetch and 1000 or 30
     local logbookCategory = "all"
     local logbookQueryLimit = 1000  -- GetLogbook limit per query
     local logbookNumEntries = GetNumLogbook(logbookCategory)
+    local maxEntries = output.isFirstFetch and logbookNumEntries or 30
 
     -- If no entries, return nil
     if logbookNumEntries == 0 then
