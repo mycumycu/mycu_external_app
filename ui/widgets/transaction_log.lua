@@ -2,7 +2,18 @@ package.path = package.path .. ";extensions/mycu_verbose_transaction_log/ui/?.lu
 
 local ffi = require("ffi")
 local C = ffi.C
-local verboseTransactionLogInstalled, verboseTransactionLog = pcall(require, "verbose_transaction_log")
+
+-- On the native Linux build of X4 a require() that cannot find its module
+-- aborts the game process (even inside pcall), so only require the optional
+-- verbose transaction log mod if its file actually exists on disk.
+local verboseTransactionLogInstalled, verboseTransactionLog = false, nil
+if type(io) == "table" and type(io.open) == "function" then
+    local verboseModFile = io.open("extensions/mycu_verbose_transaction_log/ui/verbose_transaction_log.lua", "r")
+    if verboseModFile then
+        verboseModFile:close()
+        verboseTransactionLogInstalled, verboseTransactionLog = pcall(require, "verbose_transaction_log")
+    end
+end
 
 local output = {
     -- Properties to exclude from hash calculation (frequently changing non-essential data)
